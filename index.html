@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>QUIX — Voice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="loading" id="loading">
+    <div class="loading-logo">QUIX</div>
+    <div class="loading-brand">From Verve</div>
+  </div>
+
+  <main class="app">
+    <section class="stage" id="stage" data-state="idle">
+      <div class="orb-zone" id="orbZone">
+        <div class="orb-shell">
+          <canvas id="orbCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="status" id="status">Connecting...</div>
+
+      <div class="captions">
+        <div class="caption">
+          <div class="caption-label">You</div>
+          <div class="caption-text" id="userCaption">—</div>
+        </div>
+        <div class="caption">
+          <div class="caption-label">Quix</div>
+          <div class="caption-text" id="quixCaption">Ready when you are.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button class="gear-btn" id="gearBtn" aria-label="Model settings">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  </button>
+
+  <div id="sheetOverlay"></div>
+
+  <div id="sheet">
+    <div class="sheet-head">
+      <div class="sheet-title">MODELS</div>
+      <button class="icon-btn" id="sheetClose" aria-label="Close settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6 6 18"></path>
+          <path d="M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="sheet-group">
+      <div class="sheet-label">Chat model</div>
+      <div class="chips" id="chatChips"></div>
+    </div>
+
+    <div class="sheet-group">
+      <div class="sheet-label">Voice (TTS) model</div>
+      <div class="chips" id="ttsChips"></div>
+    </div>
+
+    <div class="sheet-group">
+      <div class="sheet-label">Voice</div>
+      <div class="chips" id="voiceChips"></div>
+    </div>
+
+    <button class="sheet-done" id="sheetDone">Done</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
