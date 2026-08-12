@@ -82,23 +82,31 @@ async function geminiPost(path, payload, keys) {
   let last = { status: 500, message: 'All keys failed.' };
 
   for (const key of keys) {
-    try {
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/' + path, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify(payload)
-      });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/' + path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+          body: JSON.stringify(payload)
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) return { ok: true, data };
+        if (response.ok) return { ok: true, data };
 
-      last = { status: response.status, message: (data && data.error && data.error.message) || 'Gemini error.' };
+        last = { status: response.status, message: (data && data.error && data.error.message) || 'Gemini error.' };
 
-      if (response.status !== 429 && response.status !== 403 && response.status !== 503) break;
-    } catch (e) {
-      last = { status: 500, message: 'Network error.' };
+        if (response.status === 429 || response.status === 503) {
+          await new Promise(r => setTimeout(r, 700));
+          continue;
+        }
+        break;
+      } catch (e) {
+        last = { status: 500, message: 'Network error.' };
+        break;
+      }
     }
+    if (last.status !== 429 && last.status !== 503) break;
   }
 
   return { ok: false, error: last };
@@ -156,7 +164,7 @@ module.exports = async function handler(req, res) {
     const chunks = [];
     let current = '';
     for (const s of sentences) {
-      if ((current + s).length > 350 && current.length > 0) { chunks.push(current.trim()); current = s; }
+      if ((current + s).length > 450 && current.length > 0) { chunks.push(current.trim()); current = s; }
       else current += s;
     }
     if (current.trim()) chunks.push(current.trim());
@@ -164,10 +172,12 @@ module.exports = async function handler(req, res) {
     let allPcm = Buffer.alloc(0);
     let finalSampleRate = 24000;
 
-    for (const chunk of chunks) {
+    for (let ci = 0; ci < chunks.length; ci++) {
+      if (ci > 0) await new Promise(r => setTimeout(r, 200));
+
       for (const model of modelChain) {
         const result = await geminiPost('models/' + encodeURIComponent(model) + ':generateContent', {
-          contents: [{ parts: [{ text: chunk }] }],
+          contents: [{ parts: [{ text: chunks[ci] }] }],
           generationConfig: {
             responseModalities: ['AUDIO'],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
