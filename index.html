@@ -243,7 +243,6 @@
     if (!VOICES.includes(voiceName)) voiceName = 'Leda';
     if (!LANGS.some(l => l.id === listenLang)) listenLang = 'en-US';
 
-    /* display-only rebrand: chips show quix-*, API gets real gemini-* IDs */
     function pretty(id) { return String(id).replace(/gemini/g, 'quix'); }
 
     /* ---------- LIVE ORB ---------- */
@@ -595,21 +594,31 @@
       speaking = true; setState('speaking');
 
       try {
-        const res = await fetch('/api/chat', {
+        const ttsBody = JSON.stringify({ mode: 'tts', text, model: ttsModel, voice: voiceName });
+
+        let res = await fetch('/api/chat', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode: 'tts', text, model: ttsModel, voice: voiceName })
+          body: ttsBody
         });
+
+        if (!res.ok && [429, 500, 502, 503].includes(res.status)) {
+          await new Promise(r => setTimeout(r, 900));
+          res = await fetch('/api/chat', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: ttsBody
+          });
+        }
+
         if (!res.ok) throw new Error('TTS failed');
         const blob = await res.blob();
         if (!blob.size) throw new Error('Empty audio');
         if (!callActive) { speaking = false; return; }
 
-        if (!ttsAudio) ttsAudio = new Audio();
+        if (ttsAudio) { ttsAudio.onended = null; ttsAudio.onerror = null; }
+        else ttsAudio = new Audio();
 
         const url = URL.createObjectURL(blob);
         currentUrl = url;
-
-        ttsAudio.onended = null; ttsAudio.onerror = null;
         ttsAudio.src = url;
 
         let done = false;
@@ -629,6 +638,7 @@
           setStatus('Tap anywhere to unlock her voice');
         }
       } catch (e) {
+        if (ttsAudio) { ttsAudio.onended = null; ttsAudio.onerror = null; }
         browserSpeak(text);
       }
     }
@@ -647,7 +657,7 @@
       if (voice) utterance.voice = voice;
       utterance.onend = () => { speaking = false; if (callActive) resumeListening(); };
       utterance.onerror = () => { speaking = false; if (callActive) resumeListening(); };
-      speechSynthesis.speak(utterance);
+      setTimeout(() => { if (callActive) speechSynthesis.speak(utterance); }, 120);
     }
 
     function resumeListening() {
